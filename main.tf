@@ -102,7 +102,7 @@ resource "aws_instance" "web_server" {
     ami    = "ami-0360c520857e3138f"
     instance_type = "t3.micro"
     availability_zone = "us-east-1a"
-    key_name = "mykeydemo"
+    key_name = "jenkins"
 
   network_interface {
     device_index = 0
@@ -126,6 +126,7 @@ resource "aws_eip" "one" {
   associate_with_private_ip = "10.0.1.50"
   depends_on = [ aws_internet_gateway.internet_gw ]
 }
+
 
 
 
