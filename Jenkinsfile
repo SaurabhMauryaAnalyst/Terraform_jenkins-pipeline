@@ -1,9 +1,8 @@
-
 pipeline {
     agent any
 
     environment {
-        TF_IN_AUTOMATION = 'true'
+        TF_IN_AUTOMATION   = 'true'
         AWS_DEFAULT_REGION = 'us-east-1'
     }
 
@@ -30,8 +29,8 @@ pipeline {
                                                  usernameVariable: 'AWS_ACCESS_KEY_ID',
                                                  passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     bat '''
-                        setx AWS_ACCESS_KEY_ID %AWS_ACCESS_KEY_ID%
-                        setx AWS_SECRET_ACCESS_KEY %AWS_SECRET_ACCESS_KEY%
+                        set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+                        set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
                         terraform init -input=false
                     '''
                 }
@@ -44,8 +43,8 @@ pipeline {
                                                  usernameVariable: 'AWS_ACCESS_KEY_ID',
                                                  passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     bat '''
-                        setx AWS_ACCESS_KEY_ID %AWS_ACCESS_KEY_ID%
-                        setx AWS_SECRET_ACCESS_KEY %AWS_SECRET_ACCESS_KEY%
+                        set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+                        set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
                         terraform plan -out=tfplan -input=false
                         terraform show -no-color tfplan > plan.txt
                     '''
@@ -54,7 +53,7 @@ pipeline {
             }
         }
 
-        stage('Manual Approval') {
+        stage('Manual Approval - Apply') {
             steps {
                 input message: "Approve Terraform Apply?", ok: "Apply"
             }
@@ -66,17 +65,17 @@ pipeline {
                                                  usernameVariable: 'AWS_ACCESS_KEY_ID',
                                                  passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     bat '''
-                        setx AWS_ACCESS_KEY_ID %AWS_ACCESS_KEY_ID%
-                        setx AWS_SECRET_ACCESS_KEY %AWS_SECRET_ACCESS_KEY%
+                        set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+                        set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
                         terraform apply -auto-approve -input=false tfplan
                     '''
                 }
             }
         }
-    }
-        stage('Manual Approval') {
+
+        stage('Manual Approval - Destroy') {
             steps {
-                input message: "Approve Terraform Destroy?", ok: "Apply"
+                input message: "Approve Terraform Destroy?", ok: "Destroy"
             }
         }
 
@@ -86,17 +85,18 @@ pipeline {
                                                  usernameVariable: 'AWS_ACCESS_KEY_ID',
                                                  passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     bat '''
-                        setx AWS_ACCESS_KEY_ID %AWS_ACCESS_KEY_ID%
-                        setx AWS_SECRET_ACCESS_KEY %AWS_SECRET_ACCESS_KEY%
-                        terraform apply -auto-approve -input=false tfplan
+                        set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+                        set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
+                        terraform destroy -auto-approve -input=false
                     '''
                 }
             }
+        }
+    }
+
     post {
         always {
             bat 'terraform workspace show || exit 0'
         }
     }
 }
-
-
